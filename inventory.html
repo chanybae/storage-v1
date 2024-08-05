@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>창고 재고 현황 데이터</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+        }
+
+        th, td {
+            padding: 8px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        .button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .button:hover {
+            background-color: #45a049;
+        }
+
+        .back-button {
+            background-color: #007BFF;
+        }
+
+        .back-button:hover {
+            background-color: #0056b3;
+        }
+
+        .search-container {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        button.delete {
+            padding: 5px 10px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button.delete:hover {
+            background-color: #c0392b;
+        }
+
+        .search-results {
+            width: 90%;
+            max-width: 1200px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .search-result-item {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>창고 재고 현황 데이터</h1>
+
+        <div class="search-container">
+            <input type="text" id="search" placeholder="자재명 또는 규격을 입력하세요">
+            <button class="button" onclick="searchItems()">검색</button>
+        </div>
+    </div>
+
+    <div class="search-results" id="search-results">
+        <h2>검색 결과</h2>
+        <div id="search-results-container">
+            <!-- 검색 결과가 여기에 표시됩니다 -->
+        </div>
+    </div>
+
+    <div class="container">
+        <table>
+            <thead>
+                <tr>
+                    <th>구분</th>
+                    <th>Part No.</th>
+                    <th>품명</th>
+                    <th>규격</th>
+                    <th>원자재 창고<br>보관위치</th>
+                    <th>총 재고 수량</th>
+                    <th>원자재 창고<br>재고 수량</th>
+                    <th>공정중<br>재고 수량</th>
+                    <th>완재품 창고<br>재고 수량</th>
+                    <th>연구소 창고<br>재고 수량</th>
+                    <th>삭제</th>
+                </tr>
+            </thead>
+            <tbody id="inventory-body">
+                <!-- 저장된 데이터가 여기에 표시됩니다 -->
+            </tbody>
+        </table>
+        <button class="button" onclick="addRow()">추가</button>
+        <button class="button" onclick="saveData()">저장</button>
+        <button class="button back-button" onclick="location.href='index.html'">자재 검색으로 돌아가기</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', loadData);
+
+        function addRow() {
+            const tableBody = document.getElementById('inventory-body');
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td><input type="text" name="category"></td>
+                <td><input type="text" name="part_no"></td>
+                <td><input type="text" name="name"></td>
+                <td><input type="text" name="spec"></td>
+                <td><input type="text" name="storage_location"></td>
+                <td><input type="number" name="total_quantity"></td>
+                <td><input type="number" name="raw_material_quantity"></td>
+                <td><input type="number" name="in_process_quantity"></td>
+                <td><input type="number" name="finished_goods_quantity"></td>
+                <td><input type="number" name="lab_quantity"></td>
+                <td><button class="delete" onclick="deleteRow(this)">삭제</button></td>
+            `;
+            tableBody.appendChild(newRow);
+        }
+
+        function saveData() {
+            const tableBody = document.getElementById('inventory-body');
+            const rows = tableBody.getElementsByTagName('tr');
+            const materials = [];
+
+            for (let row of rows) {
+                const cells = row.getElementsByTagName('td');
+                const material = {
+                    category: cells[0].querySelector('input').value,
+                    part_no: cells[1].querySelector('input').value,
+                    name: cells[2].querySelector('input').value,
+                    spec: cells[3].querySelector('input').value,
+                    storage_location: cells[4].querySelector('input').value,
+                    total_quantity: cells[5].querySelector('input').value,
+                    raw_material_quantity: cells[6].querySelector('input').value,
+                    in_process_quantity: cells[7].querySelector('input').value,
+                    finished_goods_quantity: cells[8].querySelector('input').value,
+                    lab_quantity: cells[9].querySelector('input').value,
+                };
+                materials.push(material);
+            }
+
+            localStorage.setItem('inventoryData', JSON.stringify(materials));
+            alert('데이터가 저장되었습니다.');
+        }
+
+        function loadData() {
+            const savedMaterials = JSON.parse(localStorage.getItem('inventoryData') || '[]');
+            const tableBody = document.getElementById('inventory-body');
+            tableBody.innerHTML = '';
+
+            savedMaterials.forEach((material, index) => {
+                const newRow = document.createElement('tr');
+                newRow.innerHTML = `
+                    <td><input type="text" name="category" value="${material.category}"></td>
+                    <td><input type="text" name="part_no" value="${material.part_no}"></td>
+                    <td><input type="text" name="name" value="${material.name}"></td>
+                    <td><input type="text" name="spec" value="${material.spec}"></td>
+                    <td><input type="text" name="storage_location" value="${material.storage_location}"></td>
+                    <td><input type="number" name="total_quantity" value="${material.total_quantity}"></td>
+                    <td><input type="number" name="raw_material_quantity" value="${material.raw_material_quantity}"></td>
+                    <td><input type="number" name="in_process_quantity" value="${material.in_process_quantity}"></td>
+                    <td><input type="number" name="finished_goods_quantity" value="${material.finished_goods_quantity}"></td>
+                    <td><input type="number" name="lab_quantity" value="${material.lab_quantity}"></td>
+                    <td><button class="delete" onclick="deleteRow(this, ${index})">삭제</button></td>
+                `;
+                tableBody.appendChild(newRow);
+            });
+        }
+
+        function deleteRow(button, index) {
+            const row = button.parentElement.parentElement;
+            row.remove();
+            let savedMaterials = JSON.parse(localStorage.getItem('inventoryData') || '[]');
+            savedMaterials.splice(index, 1);
+            localStorage.setItem('inventoryData', JSON.stringify(savedMaterials));
+        }
+
+        function addInventoryEntry(entry) {
+            const tableBody = document.getElementById('inventory-body');
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td><input type="text" name="category" value="${entry.category}"></td>
+                <td><input type="text" name="part_no" value="${entry.partNo}"></td>
+                <td><input type="text" name="name" value="${entry.name}"></td>
+                <td><input type="text" name="spec" value="${entry.spec}"></td>
+                <td><input type="text" name="storage_location" value="${entry.storageLocation}"></td>
+                <td><input type="number" name="total_quantity" value="${entry.totalQuantity}"></td>
+                <td><input type="number" name="rawMaterialQuantity" value="${entry.rawMaterialQuantity}"></td>
+                <td><input type="number" name="inProcessQuantity" value="${entry.inProcessQuantity}"></td>
+                <td><input type="number" name="finishedGoodsQuantity" value="${entry.finishedGoodsQuantity}"></td>
+                <td><input type="number" name="labQuantity" value="${entry.labQuantity}"></td>
+                <td><button class="delete" onclick="deleteRow(this)">삭제</button></td>
+            `;
+            tableBody.appendChild(newRow);
+            saveData();
+        }
+
+        function searchItems() {
+            const searchQuery = document.getElementById('search').value.toLowerCase();
+            const inventoryData = JSON.parse(localStorage.getItem('inventoryData') || '[]');
+            const results = inventoryData.filter(item => {
+                return item.name.toLowerCase().includes(searchQuery) || item.spec.toLowerCase().includes(searchQuery);
+            });
+
+            const searchResults = document.getElementById('search-results-container');
+            searchResults.innerHTML = '';
+
+            if (results.length > 0) {
+                results.forEach(result => {
+                    const resultDiv = document.createElement('div');
+                    resultDiv.classList.add('search-result-item');
+                    resultDiv.innerHTML = `
+                        <p><strong>품명:</strong> ${result.name}</p>
+                        <p><strong>규격:</strong> ${result.spec}</p>
+                        <p><strong>원자재 창고 보관위치:</strong> ${result.storage_location}</p>
+                        <p><strong>원자재 창고 재고 수량:</strong> ${result.raw_material_quantity}</p>
+                    `;
+                    searchResults.appendChild(resultDiv);
+                });
+            } else {
+                searchResults.innerText = '검색 결과가 없습니다.';
+            }
+        }
+    </script>
+</body>
+</html>

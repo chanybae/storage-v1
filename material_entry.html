@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>원자재 입고 내역 관리</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+        }
+        th, td {
+            padding: 8px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        button.delete {
+            padding: 5px 10px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button.delete:hover {
+            background-color: #c0392b;
+        }
+    </style>
+</head>
+<body>
+
+<h1>원자재 입고 내역 관리</h1>
+
+<div class="container">
+    <table>
+        <thead>
+            <tr>
+                <th>구분</th>
+                <th>Part No.</th>
+                <th>품명</th>
+                <th>규격</th>
+                <th>입고 일자</th>
+                <th>입고 수량</th>
+                <th>비고</th>
+                <th>삭제</th>
+            </tr>
+        </thead>
+        <tbody id="entry-body">
+            <!-- 저장된 데이터가 여기에 표시됩니다 -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', loadEntries);
+
+    function loadEntries() {
+        const savedEntries = JSON.parse(localStorage.getItem('incomingData') || '[]');
+        const tableBody = document.getElementById('entry-body');
+        tableBody.innerHTML = '';
+
+        savedEntries.forEach((entry, index) => {
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td>${entry.category}</td>
+                <td>${entry.partNo}</td>
+                <td>${entry.name}</td>
+                <td>${entry.spec}</td>
+                <td>${entry.entryDate}</td>
+                <td>${entry.quantity}</td>
+                <td>${entry.remark}</td>
+                <td><button class="delete" onclick="deleteEntry(${index})">삭제</button></td>
+            `;
+            tableBody.appendChild(newRow);
+        });
+    }
+
+    function deleteEntry(index) {
+        let savedEntries = JSON.parse(localStorage.getItem('incomingData') || '[]');
+        savedEntries.splice(index, 1);
+        localStorage.setItem('incomingData', JSON.stringify(savedEntries));
+        loadEntries();
+    }
+</script>
+
+</body>
+</html>

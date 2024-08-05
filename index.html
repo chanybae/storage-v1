@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>창고 관리 시스템</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        h2 {
+            color: #555;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .button-container {
+            text-align: center;
+        }
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>창고 관리 시스템</h1>
+
+<div class="container">
+    <h2>창고 검색</h2>
+    <input type="text" id="search" placeholder="자재명 또는 규격을 입력하세요">
+    <button onclick="searchItems()">검색</button>
+</div>
+
+<div class="container">
+    <h2>검색 결과</h2>
+    <div id="search-results">
+        <!-- 검색 결과가 여기에 표시됩니다 -->
+    </div>
+</div>
+
+<div class="container">
+    <h2>창고 입고 자재 요청</h2>
+    <label for="category">구분</label>
+    <input type="text" id="category" placeholder="구분을 입력하세요">
+
+    <label for="part-no">Part No.</label>
+    <input type="text" id="part-no" placeholder="Part No.를 입력하세요">
+
+    <label for="name">품명</label>
+    <input type="text" id="name" placeholder="품명을 입력하세요">
+
+    <label for="spec">규격</label>
+    <input type="text" id="spec" placeholder="규격을 입력하세요">
+
+    <label for="entry-date">입고 일자</label>
+    <input type="date" id="entry-date">
+
+    <label for="quantity">입고 수량</label>
+    <input type="number" id="quantity" placeholder="입고 수량을 입력하세요">
+
+    <label for="remark">비고</label>
+    <input type="text" id="remark" placeholder="비고를 입력하세요">
+
+    <button onclick="saveIncomingData()">저장</button>
+</div>
+
+<div class="container">
+    <h2>창고 불출 자재 데이터 입력</h2>
+    <label for="category">구분</label>
+    <input type="text" id="category-out" placeholder="구분을 입력하세요">
+
+    <label for="part-no">Part No.</label>
+    <input type="text" id="part-no-out" placeholder="Part No.를 입력하세요">
+
+    <label for="name">품명</label>
+    <input type="text" id="name-out" placeholder="품명을 입력하세요">
+
+    <label for="spec">규격</label>
+    <input type="text" id="spec-out" placeholder="규격을 입력하세요">
+
+    <label for="out-date">불출 일자</label>
+    <input type="date" id="out-date">
+
+    <label for="request-in-quantity">반입 요청 수량</label>
+    <input type="number" id="request-in-quantity" placeholder="반입 요청 수량을 입력하세요">
+
+    <label for="request-out-quantity">반출 요청 수량</label>
+    <input type="number" id="request-out-quantity" placeholder="반출 요청 수량을 입력하세요">
+
+    <label for="reason">불출 사유</label>
+    <input type="text" id="reason" placeholder="불출 사유를 입력하세요">
+
+    <button onclick="saveOutgoingData()">저장</button>
+</div>
+
+<div class="container button-container">
+    <div class="button-group">
+        <button onclick="location.href='inventory_view.html'">창고 데이터베이스 보기</button>
+        <button onclick="showPasswordPrompt()">창고 데이터베이스 편집</button>
+        <button onclick="openWindow('material_entry.html')">입고 요청</button>
+        <button onclick="openWindow('material_io_history.html')">불출 내역</button>
+    </div>
+</div>
+
+<script>
+    function searchItems() {
+        const searchQuery = document.getElementById('search').value.toLowerCase();
+        const inventoryData = JSON.parse(localStorage.getItem('inventoryData') || '[]');
+        const results = inventoryData.filter(item => {
+            return item.name.toLowerCase().includes(searchQuery) || item.spec.toLowerCase().includes(searchQuery);
+        });
+
+        const searchResults = document.getElementById('search-results');
+        searchResults.innerHTML = '';
+
+        if (results.length > 0) {
+            results.forEach(result => {
+                const resultDiv = document.createElement('div');
+                resultDiv.innerHTML = `
+                    <p>품명: ${result.name}</p>
+                    <p>규격: ${result.spec}</p>
+                    <p>원자재 창고 보관위치: ${result.storage_location}</p>
+                    <p>원자재 창고 재고 수량: ${result.raw_material_quantity}</p>
+                `;
+                searchResults.appendChild(resultDiv);
+            });
+        } else {
+            searchResults.innerText = '검색 결과가 없습니다.';
+        }
+    }
+
+    function saveIncomingData() {
+        const entry = {
+            category: document.getElementById('category').value,
+            partNo: document.getElementById('part-no').value,
+            name: document.getElementById('name').value,
+            spec: document.getElementById('spec').value,
+            entryDate: document.getElementById('entry-date').value,
+            quantity: document.getElementById('quantity').value,
+            remark: document.getElementById('remark').value
+        };
+
+        const incomingData = JSON.parse(localStorage.getItem('incomingData') || '[]');
+        incomingData.push(entry);
+        localStorage.setItem('incomingData', JSON.stringify(incomingData));
+
+        alert('입고 내역이 저장되었습니다.');
+    }
+
+    function saveOutgoingData() {
+        const entry = {
+            category: document.getElementById('category-out').value,
+            partNo: document.getElementById('part-no-out').value,
+            name: document.getElementById('name-out').value,
+            spec: document.getElementById('spec-out').value,
+            outDate: document.getElementById('out-date').value,
+            requestInQuantity: document.getElementById('request-in-quantity').value,
+            requestOutQuantity: document.getElementById('request-out-quantity').value,
+            reason: document.getElementById('reason').value
+        };
+
+        const outgoingData = JSON.parse(localStorage.getItem('outgoingData') || '[]');
+        outgoingData.push(entry);
+        localStorage.setItem('outgoingData', JSON.stringify(outgoingData));
+
+        alert('불출 내역이 저장되었습니다.');
+    }
+
+    function openWindow(url) {
+        window.open(url, '_blank', 'width=800,height=600');
+    }
+
+    function showPasswordPrompt() {
+        const password = prompt('비밀번호를 입력하세요:');
+        if (password === '1234') {
+            location.href = 'inventory.html';
+        } else {
+            alert('비밀번호가 틀렸습니다.');
+        }
+    }
+</script>
+
+</body>
+</html>

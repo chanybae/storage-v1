@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>창고 재고 현황 보기</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+        }
+
+        th, td {
+            padding: 8px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        .button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>창고 재고 현황 보기</h1>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>구분</th>
+                    <th>Part No.</th>
+                    <th>품명</th>
+                    <th>규격</th>
+                    <th>원자재 창고<br>보관위치</th>
+                    <th>총 재고 수량</th>
+                    <th>원자재 창고<br>재고 수량</th>
+                    <th>공정중<br>재고 수량</th>
+                    <th>완재품 창고<br>재고 수량</th>
+                    <th>연구소 창고<br>재고 수량</th>
+                </tr>
+            </thead>
+            <tbody id="inventory-view-body">
+                <!-- 저장된 데이터가 여기에 표시됩니다 -->
+            </tbody>
+        </table>
+
+        <button class="button" onclick="location.href='index.html'">돌아가기</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', loadData);
+
+        function loadData() {
+            const savedMaterials = JSON.parse(localStorage.getItem('inventoryData') || '[]');
+            const tableBody = document.getElementById('inventory-view-body');
+            tableBody.innerHTML = '';
+
+            savedMaterials.forEach(material => {
+                const newRow = document.createElement('tr');
+                newRow.innerHTML = `
+                    <td>${material.category}</td>
+                    <td>${material.part_no}</td>
+                    <td>${material.name}</td>
+                    <td>${material.spec}</td>
+                    <td>${material.storage_location}</td>
+                    <td>${material.total_quantity}</td>
+                    <td>${material.raw_material_quantity}</td>
+                    <td>${material.in_process_quantity}</td>
+                    <td>${material.finished_goods_quantity}</td>
+                    <td>${material.lab_quantity}</td>
+                `;
+                tableBody.appendChild(newRow);
+            });
+        }
+    </script>
+</body>
+</html>
